@@ -1,7 +1,7 @@
 # pishock-powershell-helper
 A helper script written in powershell for automating some functions of pishock control
 
-
+This project relies on features made available in powershell 7.2
 
  This project aims to make it easier for other tools, such as bikubot, to fire off various common
 pishock commands. These commands will, by default, be run in parallel on all configured zappers. 
@@ -30,3 +30,10 @@ however there are a few more modes available, documented below.
  -delay <int> -- Sets the delay between warning buzz and zap. Defaults to 5 seconds
 
  ```
+
+## Configuration
+
+Edit the powershell and find the `###CONFIGURATION` block. Here you provide:
+- `$pishockUsername` your Pishock Username
+- `$pishockAPIkey` your pishock api key
+- `$shockCodeArray` list of shocker share codes, separated by commas. Minimum 1 required, and can include share codes provided to you by other users.
