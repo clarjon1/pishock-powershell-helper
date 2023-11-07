@@ -32,11 +32,47 @@ $pishockUsername = "YourUsername"
 $pishockAPIkey = "APIKEYHERE"
 $shockCodeArray = 'SHARECODE1','SHARECODE2'
 
+
 ### BASE FUNCTIONS
-function Zap {
+function CallAPI {
+  <#
+  .SYNOPSIS
+  Builds an API call to the pishock api 
+  
+  .DESCRIPTION
+  This function will take the data passed to it and build a json bundle to send to pishock's API  endpoint.
+  It has different defaults than the base script does, to allow for users to take its function and build their own custom
+  vibration/shock patterns based on their needs.
+  
+  .PARAMETER shockerCode
+  Share code of the shocker to target
+  
+  .PARAMETER pishockUsername
+  Username belonging to API key below
+  
+  .PARAMETER op
+  Which operation. 0 to shock, 1 to buzz, 2 to beep
+  
+  .PARAMETER duration
+  Length of operation, in seconds
+  
+  .PARAMETER intensity
+  Intensity / Power level of interaction. 1-100, can be limited on the pishock share code manager
+  
+  .PARAMETER apikey
+  APIkey tied to a specific user account, set in pishockUsername
+  
+  .EXAMPLE
+  CallAPI -pishockUsername DemoName -apikey APIKEYHERE -shockerCode AAAAAAA -op 0 -intensity 10 -duration 1 
+  Calls the pishock for shocker associaated with sharecode AAAAAAA for an intensity of 10 power for 1 second, set to zap mode
+  
+  .NOTES
+  This is the core magic bit!
+  #>
      param (
          [Parameter(Mandatory=$true)]
          [string]$shockerCode,
+         [Parameter(Mandatory = $true)]
          [string]$pishockUsername,
          [int]$op = '0',
          [int]$duration = '1',
@@ -58,96 +94,48 @@ function Zap {
 Invoke-WebRequest -Uri https://do.pishock.com/api/apioperate -Method POST -Body ($Form|ConvertTo-Json) -ContentType "application/json"
 }
 
-function Vibe {
-     param (
-         [Parameter(Mandatory=$true)]
-         [string]$shockerCode,
-         [string]$pishockUsername,
-         [int]$op = '1',
-         [int]$duration = '1',
-         [int]$intensity = '50',
-         [Parameter(Mandatory=$true)]
-         [string]$apikey
-         )
-
- $Form = @{
-    Username = "$pishockUsername"
-    Apikey = "$apikey"
-    Code = "$shockerCode"
-    Name = "PiShock Helper Script"
-    Op = "$op"
-    Duration = "$duration"
-    Intensity = "$intensity"
-    }
-
-Invoke-WebRequest -Uri https://do.pishock.com/api/apioperate -Method POST -Body ($Form|ConvertTo-Json) -ContentType "application/json"
-}
-
-function Beep {
-     param (
-         [Parameter(Mandatory=$true)]
-         [string]$shockerCode,
-         [string]$pishockUsername,
-         [int]$op = '2',
-         [int]$duration = '1',
-         [Parameter(Mandatory=$true)]
-         [string]$apikey
-         )
-
- $Form = @{
-    Username = "$pishockUsername"
-    Apikey = "$apikey"
-    Code = "$shockerCode"
-    Name = "PiShock Helper Script"
-    Op = "$op"
-    Duration = "$duration"
-    Intensity = "$intensity"
-    }
-
-Invoke-WebRequest -Uri https://do.pishock.com/api/apioperate -Method POST -Body ($Form|ConvertTo-Json) -ContentType "application/json"
-}
 
 ### SCRIPTED FUNCTIONS
 function DefaultZap {
-$funcDef = ${function:Zap}.ToString()
+$funcDef = ${function:CallAPI}.ToString()
  $shockCodeArray | foreach-Object -parallel {
    Write-output "Working on $_"
-   ${function:Zap} = $using:funcDef
-   Zap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:buzzduration -pishockUsername $using:pishockUsername
+   ${function:CallAPI} = $using:funcDef
+   CallAPI -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:buzzduration -pishockUsername $using:pishockUsername
    $delay = $using:delay + $using:buzzduration
    Start-Sleep -Seconds $delay
-   Zap -shockerCode $_ -op 0 -apikey $using:pishockAPIKey -intensity $using:intensity -duration $using:duration  -pishockUsername $using:pishockUsername
+   CallAPI -shockerCode $_ -op 0 -apikey $using:pishockAPIKey -intensity $using:intensity -duration $using:duration  -pishockUsername $using:pishockUsername
   }
 }
 
 function RandomZap {
-$funcDef = ${function:Zap}.ToString()
+$funcDef = ${function:CallAPI}.ToString()
  $shockCodeArray | foreach-Object -parallel {
    Write-output "Working on $_"
-   ${function:Zap} = $using:funcDef
+   ${function:CallAPI} = $using:funcDef
     $random = Get-Random -Minimum $using:randmin -Maximum $using:randmax
-   Zap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:buzzduration -pishockUsername $using:pishockUsername
+   CallAPI -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:buzzduration -pishockUsername $using:pishockUsername
    $delay = $random + $using:buzzduration
    Start-Sleep -Seconds $delay
-   Zap -shockerCode $_ -op 0 -apikey $using:pishockAPIKey -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
+   CallAPI -shockerCode $_ -op 0 -apikey $using:pishockAPIKey -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
   }
 }
 
 function Fakeout { 
-$funcDef = ${function:Zap}.ToString()
+$funcDef = ${function:CallAPI}.ToString()
  $shockCodeArray | foreach-Object   -parallel {
    Write-output "Working on $_"
-   ${function:Zap} = $using:funcDef
-   Zap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:buzzduration -pishockUsername $using:pishockUsername
+   ${function:CallAPI} = $using:funcDef
+   CallAPI -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:buzzduration -pishockUsername $using:pishockUsername
   }
 }
 
 function NoWarning {
-$funcDef = ${function:Zap}.ToString()
+$funcDef = ${function:CallAPI}.ToString()
  $shockCodeArray | foreach-Object   -parallel {
    Write-output "Working on $_"
-   ${function:Zap} = $using:funcDef
-   Zap -shockerCode $_ -op 0 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
+   ${function:CallAPI} = $using:funcDef
+   CallAPI -shockerCode $_ -op 0 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
   }
 }
 
