@@ -1,10 +1,3 @@
-### Welcome to Toy Dragon's Pishock control script!
-## This project aims to make it easier for other tools, such as bikubot, to fire off various common
-## pishock commands. These commands will, by default, be run in parallel on all configured zappers. 
-## I plan on adding individual zapper targeting in the future!!
-## By default, this script will provide a warning buzz, a 5 second delay, then send the zap,
-## however there are a few more modes available, documented below.
-
 ### Params thaat can be passed:
 ## MANDATORY:
 # -intensity <int> -- Set the intensity of the zap or buzz!
@@ -13,23 +6,23 @@
 # -duration <int> -- Sets the duration of the zap or buzz!
 # -op [1-3] -- Not used yet! Will be added for CustomZap mode later
 # -mode [1-4] -- Sets the mode this will run in. Defaults to 1 Current values:
-  # -mode 1 -- default zap -- default buzz, wait (5s) and shock
-  # -mode 2 -- random zap -- buzz, wait for $randmin up to $randmax, then shock
-  # -mode 3 -- fakeout -- will only buzz
-  # -mode 4 -- no warning -- zap only, no warning
-# -randmin <int> -- Minimum number of seconds for RandoZap mode delay range
-# -randmax <int> -- maximum number of seconds for RandoZap Mode delay range
+  # -mode 1 -- DefaultZap -- default buzz, wait (5s) and shock
+  # -mode 2 -- RandomZap -- buzz, wait for $randmin up to $randmax, then shock
+  # -mode 3 -- Fakeout -- will only buzz
+  # -mode 4 -- NoWarning -- zap only, no warning
+# -randmin <int> -- Minimum number of seconds for RandomZap mode delay range
+# -randmax <int> -- maximum number of seconds for RandomZap Mode delay range
 # -delay <int> -- Sets the delay between warning buzz and zap. Defaults to 5 seconds
 param( 
     [int]$op = '1',
     [int]$mode = '1',
     [int]$duration = '1',
     [int]$buzzduration = $duration,
-    [int]$randmin = '3',
+    [int]$randmin = '1',
     [int]$randmax = '10',
     [int]$delay = '5',
     [Parameter(Mandatory=$true)]
-    [int]$intensity)
+    [int]$intensity = '3')
 
 ### CONFIGURATION
 # To get started, grab your API key from pishock.com, and get a list of shocker share codes, and 
@@ -39,8 +32,7 @@ $pishockUsername = "YourUsername"
 $pishockAPIkey = "APIKEYHERE"
 $shockCodeArray = 'SHARECODE1','SHARECODE2'
 
-
-######### FUNCTIONS
+### BASE FUNCTIONS
 function Zap {
      param (
          [Parameter(Mandatory=$true)]
@@ -57,7 +49,7 @@ function Zap {
     Username = "$pishockUsername"
     Apikey = "$apikey"
     Code = "$shockerCode"
-    Name = "ToyDragonShockerScript"
+    Name = "PiShock Helper Script"
     Op = "$op"
     Duration = "$duration"
     Intensity = "$intensity"
@@ -66,6 +58,11 @@ function Zap {
 Invoke-WebRequest -Uri https://do.pishock.com/api/apioperate -Method POST -Body ($Form|ConvertTo-Json) -ContentType "application/json"
 }
 
+### TODO:
+# function Vibe
+# fuunction Beep
+
+### SCRIPTED FUNCTIONS
 function DefaultZap {
 $funcDef = ${function:Zap}.ToString()
  $shockCodeArray | foreach-Object -parallel {
@@ -78,9 +75,8 @@ $funcDef = ${function:Zap}.ToString()
   }
 }
 
-function RandoZap {
+function RandomZap {
 $funcDef = ${function:Zap}.ToString()
-
  $shockCodeArray | foreach-Object -parallel {
    Write-output "Working on $_"
    ${function:Zap} = $using:funcDef
@@ -92,33 +88,30 @@ $funcDef = ${function:Zap}.ToString()
   }
 }
 
-function FakeOut { 
+function Fakeout { 
 $funcDef = ${function:Zap}.ToString()
-
  $shockCodeArray | foreach-Object   -parallel {
    Write-output "Working on $_"
    ${function:Zap} = $using:funcDef
-
    Zap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:buzzduration -pishockUsername $using:pishockUsername
   }
 }
 
 function NoWarning {
 $funcDef = ${function:Zap}.ToString()
-
  $shockCodeArray | foreach-Object   -parallel {
    Write-output "Working on $_"
    ${function:Zap} = $using:funcDef
-
    Zap -shockerCode $_ -op 0 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
   }
 }
 
 ### Switches
-# This be the part where we check what we're gonna do
 switch ($mode){
     1 {DefaultZap}
-    2 {RandoZap}
+    2 {RandomZap}
     3 {Fakeout}
     4 {NoWarning}
 }
+
+## TODO:
