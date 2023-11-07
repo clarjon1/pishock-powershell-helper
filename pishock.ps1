@@ -38,9 +38,9 @@ function Zap {
          [Parameter(Mandatory=$true)]
          [string]$shockerCode,
          [string]$pishockUsername,
-         [int]$op = '1',
+         [int]$op = '0',
          [int]$duration = '1',
-         [int]$intensity = '3',
+         [int]$intensity = '1',
          [Parameter(Mandatory=$true)]
          [string]$apikey
          )
@@ -58,9 +58,54 @@ function Zap {
 Invoke-WebRequest -Uri https://do.pishock.com/api/apioperate -Method POST -Body ($Form|ConvertTo-Json) -ContentType "application/json"
 }
 
-### TODO:
-# function Vibe
-# fuunction Beep
+function Vibe {
+     param (
+         [Parameter(Mandatory=$true)]
+         [string]$shockerCode,
+         [string]$pishockUsername,
+         [int]$op = '1',
+         [int]$duration = '1',
+         [int]$intensity = '50',
+         [Parameter(Mandatory=$true)]
+         [string]$apikey
+         )
+
+ $Form = @{
+    Username = "$pishockUsername"
+    Apikey = "$apikey"
+    Code = "$shockerCode"
+    Name = "PiShock Helper Script"
+    Op = "$op"
+    Duration = "$duration"
+    Intensity = "$intensity"
+    }
+
+Invoke-WebRequest -Uri https://do.pishock.com/api/apioperate -Method POST -Body ($Form|ConvertTo-Json) -ContentType "application/json"
+}
+
+function Beep {
+     param (
+         [Parameter(Mandatory=$true)]
+         [string]$shockerCode,
+         [string]$pishockUsername,
+         [int]$op = '2',
+         [int]$duration = '1',
+         [Parameter(Mandatory=$true)]
+         [string]$apikey
+         )
+
+ $Form = @{
+    Username = "$pishockUsername"
+    Apikey = "$apikey"
+    Code = "$shockerCode"
+    Name = "PiShock Helper Script"
+    Op = "$op"
+    Duration = "$duration"
+    Intensity = "$intensity"
+    }
+
+Invoke-WebRequest -Uri https://do.pishock.com/api/apioperate -Method POST -Body ($Form|ConvertTo-Json) -ContentType "application/json"
+}
 
 ### SCRIPTED FUNCTIONS
 function DefaultZap {
@@ -113,5 +158,3 @@ switch ($mode){
     3 {Fakeout}
     4 {NoWarning}
 }
-
-## TODO:
