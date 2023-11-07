@@ -19,12 +19,14 @@
   # -mode 4 -- no warning -- zap only, no warning
 # -randmin <int> -- Minimum number of seconds for RandoZap mode delay range
 # -randmax <int> -- maximum number of seconds for RandoZap Mode delay range
+# -delay <int> -- Sets the delay between warning buzz and zap. Defaults to 5 seconds
 param( 
     [int]$op = '1',
     [int]$mode = '1',
     [int]$duration = '1',
     [int]$randmin = '3',
     [int]$randmax = '10',
+    [int]$delay = '5',
     [Parameter(Mandatory=$true)]
     [int]$intensity)
 
@@ -35,6 +37,8 @@ param(
 $pishockUsername = "YourUsername"
 $pishockAPIkey = "APIKEYHERE"
 $shockCodeArray = 'SHARECODE1','SHARECODE2'
+
+
 
 ######### FUNCTIONS
 function Zap {
@@ -68,7 +72,7 @@ $funcDef = ${function:Zap}.ToString()
    Write-output "Working on $_"
    ${function:Zap} = $using:funcDef
    Zap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
-   Start-Sleep -Seconds 5
+   Start-Sleep -Seconds $using:delay
    Zap -shockerCode $_ -op 0 -apikey $using:pishockAPIKey -intensity $using:intensity -duration $using:duration  -pishockUsername $using:pishockUsername
   }
 }
@@ -92,7 +96,7 @@ $funcDef = ${function:Zap}.ToString()
  $shockCodeArray | foreach-Object   -parallel {
    Write-output "Working on $_"
    ${function:Zap} = $using:funcDef
-    $random = Get-Random -Minimum $using:randmin -Maximum $using:randmax
+
    Zap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
   }
 }
@@ -103,7 +107,7 @@ $funcDef = ${function:Zap}.ToString()
  $shockCodeArray | foreach-Object   -parallel {
    Write-output "Working on $_"
    ${function:Zap} = $using:funcDef
-    $random = Get-Random -Minimum $using:randmin -Maximum $using:randmax
+
    Zap -shockerCode $_ -op 0 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
   }
 }
