@@ -24,6 +24,7 @@ param(
     [int]$op = '1',
     [int]$mode = '1',
     [int]$duration = '1',
+    [int]$buzzduration = $duration,
     [int]$randmin = '3',
     [int]$randmax = '10',
     [int]$delay = '5',
@@ -37,7 +38,6 @@ param(
 $pishockUsername = "YourUsername"
 $pishockAPIkey = "APIKEYHERE"
 $shockCodeArray = 'SHARECODE1','SHARECODE2'
-
 
 
 ######### FUNCTIONS
@@ -71,8 +71,9 @@ $funcDef = ${function:Zap}.ToString()
  $shockCodeArray | foreach-Object -parallel {
    Write-output "Working on $_"
    ${function:Zap} = $using:funcDef
-   Zap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
-   Start-Sleep -Seconds $using:delay
+   Zap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:buzzduration -pishockUsername $using:pishockUsername
+   $delay = $using:delay + $using:buzzduration
+   Start-Sleep -Seconds $delay
    Zap -shockerCode $_ -op 0 -apikey $using:pishockAPIKey -intensity $using:intensity -duration $using:duration  -pishockUsername $using:pishockUsername
   }
 }
@@ -84,8 +85,9 @@ $funcDef = ${function:Zap}.ToString()
    Write-output "Working on $_"
    ${function:Zap} = $using:funcDef
     $random = Get-Random -Minimum $using:randmin -Maximum $using:randmax
-   Zap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
-   Start-Sleep -Seconds $random
+   Zap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:buzzduration -pishockUsername $using:pishockUsername
+   $delay = $random + $using:buzzduration
+   Start-Sleep -Seconds $delay
    Zap -shockerCode $_ -op 0 -apikey $using:pishockAPIKey -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
   }
 }
@@ -97,7 +99,7 @@ $funcDef = ${function:Zap}.ToString()
    Write-output "Working on $_"
    ${function:Zap} = $using:funcDef
 
-   Zap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
+   Zap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:buzzduration -pishockUsername $using:pishockUsername
   }
 }
 
