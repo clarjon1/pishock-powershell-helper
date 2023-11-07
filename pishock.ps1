@@ -1,23 +1,11 @@
-### PARAMETERS AND DOCS
-param( 
-         [int]$op = '1',
-         [int]$mode = '1',
-         [int]$duration = '1',
-         [int]$randmin = '3',
-         [int]$randmax = '10',
-         [Parameter(Mandatory=$true)]
-         [int]$intensity
-     )
-
 ### Welcome to Toy Dragon's Pishock control script!
-## This project is to make it easier for other tools, such as bikubot, to fire off various common
+## This project aims to make it easier for other tools, such as bikubot, to fire off various common
 ## pishock commands. These commands will, by default, be run in parallel on all configured zappers. 
 ## I plan on adding individual zapper targeting in the future!!
 ## By default, this script will provide a warning buzz, a 5 second delay, then send the zap,
 ## however there are a few more modes available, documented below.
 
 ### Params thaat can be passed:
-
 ## MANDATORY:
 # -intensity <int> -- Set the intensity of the zap or buzz!
 
@@ -29,21 +17,27 @@ param(
   # -mode 2 -- random zap -- buzz, wait for $randmin up to $randmax, then shock
   # -mode 3 -- fakeout -- will only buzz
   # -mode 4 -- no warning -- zap only, no warning
-# -randmin <int> -- Minimum number of seconds for Rando Zappy mode delay range
-# -randmax <int> -- maximum number of seconds for Rando Zappy Mode delay range
+# -randmin <int> -- Minimum number of seconds for RandoZap mode delay range
+# -randmax <int> -- maximum number of seconds for RandoZap Mode delay range
+param( 
+    [int]$op = '1',
+    [int]$mode = '1',
+    [int]$duration = '1',
+    [int]$randmin = '3',
+    [int]$randmax = '10',
+    [Parameter(Mandatory=$true)]
+    [int]$intensity)
 
 ### CONFIGURATION
 # To get started, grab your API key from pishock.com, and get a list of shocker share codes, and 
 # populate the variables in the CONFIGURATION section below
 # Note: Despite the below having two, this can have as many listed as you'd like, as it'll loop thru the list! Think collabs, parties, etc. 
-
 $pishockUsername = "YourUsername"
 $pishockAPIkey = "APIKEYHERE"
 $shockCodeArray = 'SHARECODE1','SHARECODE2'
 
 ######### FUNCTIONS
-
-function ZappyZap {
+function Zap {
      param (
          [Parameter(Mandatory=$true)]
          [string]$shockerCode,
@@ -53,72 +47,72 @@ function ZappyZap {
          [int]$intensity = '3',
          [Parameter(Mandatory=$true)]
          [string]$apikey
-     )
+         )
 
  $Form = @{
-    Username  = "$pishockUsername"
-    Apikey  = "$apikey"
-    Code      = "$shockerCode"
-    Name     = "ToyDragonShockerScript"
-    Op   = "$op"
-    Duration    = "$duration"
+    Username = "$pishockUsername"
+    Apikey = "$apikey"
+    Code = "$shockerCode"
+    Name = "ToyDragonShockerScript"
+    Op = "$op"
+    Duration = "$duration"
     Intensity = "$intensity"
-  }
+    }
+
 Invoke-WebRequest -Uri https://do.pishock.com/api/apioperate -Method POST -Body ($Form|ConvertTo-Json) -ContentType "application/json"
 }
 
-function DefaultZappy {
-$funcDef = ${function:ZappyZap}.ToString()
-
- $shockCodeArray | foreach-Object   -parallel {
+function DefaultZap {
+$funcDef = ${function:Zap}.ToString()
+ $shockCodeArray | foreach-Object -parallel {
    Write-output "Working on $_"
-   ${function:ZappyZap} = $using:funcDef
-   ZappyZap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
+   ${function:Zap} = $using:funcDef
+   Zap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
    Start-Sleep -Seconds 5
-   ZappyZap -shockerCode $_ -op 0 -apikey $using:pishockAPIKey -intensity $using:intensity -duration $using:duration  -pishockUsername $using:pishockUsername
+   Zap -shockerCode $_ -op 0 -apikey $using:pishockAPIKey -intensity $using:intensity -duration $using:duration  -pishockUsername $using:pishockUsername
   }
 }
 
-function RandoZappy {
-$funcDef = ${function:ZappyZap}.ToString()
+function RandoZap {
+$funcDef = ${function:Zap}.ToString()
 
- $shockCodeArray | foreach-Object   -parallel {
+ $shockCodeArray | foreach-Object -parallel {
    Write-output "Working on $_"
-   ${function:ZappyZap} = $using:funcDef
+   ${function:Zap} = $using:funcDef
     $random = Get-Random -Minimum $using:randmin -Maximum $using:randmax
-   ZappyZap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
+   Zap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
    Start-Sleep -Seconds $random
-   ZappyZap -shockerCode $_ -op 0 -apikey $using:pishockAPIKey -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
+   Zap -shockerCode $_ -op 0 -apikey $using:pishockAPIKey -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
   }
 }
 
 function FakeOut { 
-$funcDef = ${function:ZappyZap}.ToString()
+$funcDef = ${function:Zap}.ToString()
 
  $shockCodeArray | foreach-Object   -parallel {
    Write-output "Working on $_"
-   ${function:ZappyZap} = $using:funcDef
+   ${function:Zap} = $using:funcDef
     $random = Get-Random -Minimum $using:randmin -Maximum $using:randmax
-   ZappyZap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
+   Zap -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
   }
 }
 
 function NoWarning {
-$funcDef = ${function:ZappyZap}.ToString()
+$funcDef = ${function:Zap}.ToString()
 
  $shockCodeArray | foreach-Object   -parallel {
    Write-output "Working on $_"
-   ${function:ZappyZap} = $using:funcDef
+   ${function:Zap} = $using:funcDef
     $random = Get-Random -Minimum $using:randmin -Maximum $using:randmax
-   ZappyZap -shockerCode $_ -op 0 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
+   Zap -shockerCode $_ -op 0 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
   }
 }
 
 ### Switches
 # This be the part where we check what we're gonna do
 switch ($mode){
-    1 {DefaultZappy}
-    2 {RandoZappy}
+    1 {DefaultZap}
+    2 {RandoZap}
     3 {Fakeout}
     4 {NoWarning}
 }
