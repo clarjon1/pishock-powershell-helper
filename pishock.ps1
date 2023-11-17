@@ -14,6 +14,7 @@
 # -randmin <int> -- Minimum number of seconds for RandomZap mode delay range
 # -randmax <int> -- maximum number of seconds for RandomZap Mode delay range
 # -delay <int> -- Sets the delay between warning buzz and zap. Defaults to 5 seconds
+[CmdletBinding()]
 param( 
     [int]$op = '1',
     [int]$mode = '1',
@@ -32,7 +33,6 @@ param(
 $pishockUsername = "YourUsername"
 $pishockAPIkey = "APIKEYHERE"
 $shockCodeArray = 'SHARECODE1','SHARECODE2'
-
 
 ### BASE FUNCTIONS
 function CallAPI {
@@ -92,7 +92,21 @@ function CallAPI {
     Intensity = "$intensity"
     }
 
-Invoke-WebRequest -Uri https://do.pishock.com/api/apioperate -Method POST -Body ($Form|ConvertTo-Json) -ContentType "application/json"
+    try
+    {
+      $Response = Invoke-WebRequest -Uri https://do.pishock.com/api/apioperate -Method POST -Body ($Form|ConvertTo-Json) -ContentType "application/json"
+
+        # This will only execute if the Invoke-WebRequest is successful.
+        $StatusCode = $Response.StatusCode
+       
+        write-host "Sent: Op: $op Duration: $duration Intensity: $intensity and received  $StatusCode $Response"
+    } catch {
+        $StatusCode = $_.Exception.Response.StatusCode.value__
+        Write-Host $_.Exception.Response
+
+    }
+
+
 }
 
 
@@ -100,7 +114,7 @@ Invoke-WebRequest -Uri https://do.pishock.com/api/apioperate -Method POST -Body 
 function DefaultZap {
 $funcDef = ${function:CallAPI}.ToString()
  $shockCodeArray | foreach-Object -parallel {
-   Write-output "Working on $_"
+   Write-output "Default Zap, targeting trackers on $_ with intensity $using:intensity "
    ${function:CallAPI} = $using:funcDef
    CallAPI -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:buzzduration -pishockUsername $using:pishockUsername
    $delay = $using:delay + $using:buzzduration
@@ -117,7 +131,7 @@ function RampingZap {
     [int]$ramp3 = $using:intensity * (50/100)
     [int]$ramp4 = $using:intensity * (75/100)
 
-     Write-output "Working on $_"
+     Write-output "Ramping Zap targeting $_ with intensities of $ramp1 $ramp2 $ramp3 $ramp4 $using:intensity"
      ${function:CallAPI} = $using:funcDef
      CallAPI -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:buzzduration -pishockUsername $using:pishockUsername
      $delay = $using:delay + $using:buzzduration
@@ -136,7 +150,7 @@ function RampingZap {
 function RandomZap {
 $funcDef = ${function:CallAPI}.ToString()
  $shockCodeArray | foreach-Object -parallel {
-   Write-output "Working on $_"
+   Write-output "Random Zap targeting $_"
    ${function:CallAPI} = $using:funcDef
     $random = Get-Random -Minimum $using:randmin -Maximum $using:randmax
    CallAPI -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:buzzduration -pishockUsername $using:pishockUsername
@@ -149,7 +163,7 @@ $funcDef = ${function:CallAPI}.ToString()
 function Fakeout { 
 $funcDef = ${function:CallAPI}.ToString()
  $shockCodeArray | foreach-Object   -parallel {
-   Write-output "Working on $_"
+   Write-output "Faking out (buzz only) targeting $_"
    ${function:CallAPI} = $using:funcDef
    CallAPI -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:buzzduration -pishockUsername $using:pishockUsername
   }
@@ -158,7 +172,7 @@ $funcDef = ${function:CallAPI}.ToString()
 function NoWarning {
 $funcDef = ${function:CallAPI}.ToString()
  $shockCodeArray | foreach-Object   -parallel {
-   Write-output "Working on $_"
+   Write-output "No warning zap targeting $_ at intensity $using:intensity"
    ${function:CallAPI} = $using:funcDef
    CallAPI -shockerCode $_ -op 0 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
   }
