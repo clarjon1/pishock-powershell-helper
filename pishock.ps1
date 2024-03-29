@@ -30,6 +30,7 @@ param(
 # To get started, grab your API key from pishock.com, and get a list of shocker share codes, and 
 # populate the variables in the CONFIGURATION section below
 # Note: Despite the below having two, this can have as many listed as you'd like, as it'll loop thru the list! Think collabs, parties, etc. 
+$throtlimit = 10  # Powershell defaults the limit of how many asyncs go at once to five and queues 'em beyond that point. adjust this so it's more than the number of shocker sharecodes
 $pishockUsername = "YourUsername"
 $pishockAPIkey = "APIKEYHERE"
 $shockCodeArray = 'SHARECODE1','SHARECODE2'
@@ -120,7 +121,7 @@ $funcDef = ${function:CallAPI}.ToString()
    $delay = $using:delay + $using:buzzduration
    Start-Sleep -Seconds $delay
    CallAPI -shockerCode $_ -op 0 -apikey $using:pishockAPIKey -intensity $using:intensity -duration $using:duration  -pishockUsername $using:pishockUsername
-  }
+  } -throttlelimit $throtlimit 
 }
 
 function RampingZap {
@@ -145,7 +146,7 @@ function RampingZap {
      CallAPI -shockerCode $_ -op 0 -apikey $using:pishockAPIKey -intensity $ramp4 -duration $using:duration  -pishockUsername $using:pishockUsername
      Start-Sleep -Seconds $delay
      CallAPI -shockerCode $_ -op 0 -apikey $using:pishockAPIKey -intensity $using:intensity -duration $using:duration  -pishockUsername $using:pishockUsername
-    }
+    } -throttlelimit $throtlimit 
   }
 function RandomZap {
 $funcDef = ${function:CallAPI}.ToString()
@@ -157,7 +158,7 @@ $funcDef = ${function:CallAPI}.ToString()
    $delay = $random + $using:buzzduration
    Start-Sleep -Seconds $delay
    CallAPI -shockerCode $_ -op 0 -apikey $using:pishockAPIKey -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
-  }
+  } -throttlelimit $throtlimit 
 }
 
 function Fakeout { 
@@ -166,7 +167,7 @@ $funcDef = ${function:CallAPI}.ToString()
    Write-output "Faking out (buzz only) targeting $_"
    ${function:CallAPI} = $using:funcDef
    CallAPI -shockerCode $_ -op 1 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:buzzduration -pishockUsername $using:pishockUsername
-  }
+  } -throttlelimit $throtlimit 
 }
 
 function NoWarning {
@@ -175,7 +176,7 @@ $funcDef = ${function:CallAPI}.ToString()
    Write-output "No warning zap targeting $_ at intensity $using:intensity"
    ${function:CallAPI} = $using:funcDef
    CallAPI -shockerCode $_ -op 0 -apikey $using:pishockAPIKey  -intensity $using:intensity -duration $using:duration -pishockUsername $using:pishockUsername
-  }
+  } -throttlelimit $throtlimit 
 }
 
 ### Switches
