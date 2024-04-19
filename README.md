@@ -38,3 +38,7 @@ Edit the powershell and find the `###CONFIGURATION` block. Here you provide:
 - `$pishockUsername` your Pishock Username
 - `$pishockAPIkey` your pishock api key
 - `$shockCodeArray` list of shocker share codes, separated by commas. Minimum 1 required, and can include share codes provided to you by other users.
+
+## Powershell security
+
+Powershell with default settings will not like letting you use the script. use `Unblock-File path\to\wherever\you\put\pishock.ps1` to make it behave!
