@@ -9,7 +9,7 @@ pishock commands. These commands will, by default, be run in parallel on all con
  By default, this script will provide a warning buzz, a 5 second delay, then send the zap,
 however there are a few more modes available, documented below.
 
-## Params thaat can be passed:
+## Params that can be passed:
 ### MANDATORY:
 ```
  -intensity <int> -- Set the intensity of the zap or buzz!
